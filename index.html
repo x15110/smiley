@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smiley — Mi Cine Privado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --lila:      #9B72CF;
+      --lila-soft: #C4A8E8;
+      --rosa:      #F472B6;
+      --rosa-soft: #FBCFE8;
+      --azul:      #60A5FA;
+      --azul-dark: #2563EB;
+      --blanco:    #FDF8FF;
+    }
+    body {
+      background: linear-gradient(145deg, #1a0a2e 0%, #0f172a 50%, #1e0a3c 100%);
+      min-height: 100vh;
+      font-family: 'Lato', sans-serif;
+      color: var(--blanco);
+    }
+    header { text-align: center; padding: 3rem 1.5rem 1.5rem; }
+    .eyebrow { font-size: 0.8rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--rosa); margin-bottom: 0.75rem; }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.4rem, 11vw, 7.2rem); font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--rosa) 0%, var(--lila-soft) 50%, var(--azul) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      -webkit-text-stroke: 2px #D4AF37;
+      paint-order: stroke fill;
+      filter: drop-shadow(0 0 14px rgba(212,175,55,0.35));
+    }
+    .subtitle {
+      margin-top: 0.6rem; font-size: 1.2rem; font-weight: 700; color: var(--lila-soft);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      border: 1.5px solid #D4AF37;
+      border-radius: 999px;
+      display: inline-block;
+      padding: 0.35rem 1.3rem;
+      box-shadow: 0 0 16px rgba(212,175,55,0.25);
+    }
+    .divider { width: 80px; height: 3px; background: linear-gradient(90deg, var(--rosa), var(--azul)); border-radius: 2px; margin: 1.5rem auto; }
+    main { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--rosa-soft); text-align: center; margin-bottom: 2rem; }
+
+    .zone-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      text-align: center;
+      color: #FB923C;
+      text-shadow: 0 0 24px rgba(251,146,60,0.35);
+      margin: 0 0 0.4rem;
+      letter-spacing: 0.03em;
+    }
+    .zone-divider {
+      width: 60px; height: 3px; border-radius: 2px;
+      background: linear-gradient(90deg, #FB923C, #FDBA74);
+      margin: 0 auto 2.5rem;
+    }
+    .zone-block { margin-bottom: 3rem; }
+    .zone-block:last-of-type { margin-bottom: 0; }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .movie-card { display: flex; flex-direction: column; align-items: center; }
+
+    .cover-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 206 / 305;
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      background: rgba(255,255,255,0.05);
+    }
+    .cover-wrap:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 14px 34px rgba(155,114,207,0.35); }
+
+    .cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .play-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(15, 10, 30, 0); transition: background 0.25s ease;
+    }
+    .cover-wrap:hover .play-overlay { background: rgba(15, 10, 30, 0.35); }
+    .play-overlay svg { opacity: 0; transition: opacity 0.25s ease; }
+    .cover-wrap:hover .play-overlay svg { opacity: 1; }
+
+    .movie-title-display {
+      margin-top: 0.85rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-align: center;
+    }
+    .movie-title-display.coming { color: var(--lila-soft); font-style: italic; font-weight: 400; }
+
+    /* Tarjeta "Próximamente" (con carátula real) */
+    .cover-wrap.coming-soon {
+      cursor: default;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .cover-wrap.coming-soon:hover { transform: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+    .coming-soon-img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      filter: grayscale(35%) brightness(0.45) saturate(1.1);
+      transform: scale(1.02);
+    }
+
+    .coming-soon-veil {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(15,10,30,0.15) 0%, rgba(15,10,30,0.55) 60%, rgba(15,10,30,0.85) 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.6rem; text-align: center; padding: 1rem;
+    }
+
+    .coming-soon-ribbon {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.3rem;
+      letter-spacing: 0.04em;
+      color: var(--blanco);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .coming-soon-sub {
+      font-size: 0.7rem; letter-spacing: 0.2em; color: var(--rosa-soft);
+      text-transform: uppercase; font-weight: 700;
+    }
+
+    .film-strip-row { display: flex; gap: 6px; }
+    .film-hole { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.25); animation: pulse 2s infinite ease-in-out; }
+    .film-hole:nth-child(2) { animation-delay: 0.2s; }
+    .film-hole:nth-child(3) { animation-delay: 0.4s; }
+    .film-hole:nth-child(4) { animation-delay: 0.6s; }
+    @keyframes pulse { 0%,100% { opacity: 0.2; } 50% { opacity: 0.9; } }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10, 5, 20, 0.75);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 999; padding: 1rem;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+    .modal-box {
+      width: 100%; max-width: 860px;
+      background: #120a22;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1.25rem;
+      background: linear-gradient(90deg, rgba(155,114,207,0.25), rgba(244,114,182,0.2));
+    }
+    .modal-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; }
+    .modal-close {
+      background: none; border: none; color: var(--blanco); cursor: pointer;
+      font-size: 1.5rem; line-height: 1;
+      transition: color 0.2s; padding: 0 4px;
+    }
+    .modal-close:hover { color: var(--rosa); }
+
+    .modal-player {
+      position: relative; width: 100%;
+      padding-bottom: 56.25%; /* 16:9 */
+      background: #000;
+    }
+
+    .modal-player iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    footer { text-align: center; padding: 2rem 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.2); letter-spacing: 0.08em; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Smiley</h1>
+    <p class="subtitle">Películas y Series</p>
+    <div class="divider"></div>
+  </header>
+
+  <main>
+    <div class="zone-block">
+      <p class="zone-title">Sección de Películas</p>
+      <div class="zone-divider"></div>
+      <p class="section-title">🎞 Pulsa la carátula para ver el video</p>
+      <div class="cards-grid" id="cards-grid"></div>
+    </div>
+
+    <div class="zone-block">
+      <p class="zone-title">Sección de Series</p>
+      <div class="zone-divider"></div>
+      <p class="section-title">🎞 Pulsa la carátula para ver el episodio</p>
+      <div class="cards-grid" id="series-grid"></div>
+    </div>
+  </main>
+
+  <!-- MODAL REPRODUCTOR -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title"></span>
+        <button class="modal-close" id="modal-close" title="Cerrar">✕</button>
+      </div>
+      <div class="modal-player">
+        <iframe id="modal-iframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <footer>🌸 Smiley — Mi Cine Privado 2026 🌸</footer>
+
+  <script>
+    const movies = [
+      {
+        title: 'Psycho Killer',
+        imgUrl: 'https://resizing.flixster.com/THPEpe5eYOl0HJnFxPtf9UUa-fw=/206x305/v2/https://resizing.flixster.com/yPK9VP917nY6GN8XUJ6PIShpnjM=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2JiN2EzMzdkLWQxYWYtNGJjZS04MWVlLWNjYzczYzNlNDk4NS5qcGc=',
+        videoUrl: 'https://mega.nz/embed/mFUyQBCZ#7kjX5oQ97phtGnIbHEUlqWjAaKGnbxNV2-eP87pf8A0'
+      },
+      {
+        title: 'Deep Water',
+        imgUrl: 'https://resizing.flixster.com/zxyctqxK6TFewXBR1AGPA1z-TGg=/206x305/v2/https://resizing.flixster.com/bzDN5OOLyDRfT2JB4LJA90fR-5U=/ems.cHJkLWVtcy1hc3NldHMvbW92aWVzL2NhYWExNTQxLWU2YTAtNDZjZS1iNjM3LTI3MjkxMmU2MGNmNS5qcGc=',
+        videoUrl: 'https://mega.nz/embed/HF0DxawK#_H4e8x2Zq4lSG7gSOUrBp7T3Ecf9gsL3cZr4M18BUxE'
+      },
+      {
+        title: 'La Novia del Diablo',
+        imgUrl: 'https://pics.filmaffinity.com/pengantin_setan-273304291-large.jpg',
+        videoUrl: 'https://mega.nz/embed/aM8FVSaA#iflXgT9fMOwzyX9WFa6koBDCL-n-vgLsfCX9QP47EbE'
+      },
+      {
+        title: 'The Summoning',
+        imgUrl: 'https://pics.filmaffinity.com/the_summoning-440903869-large.jpg',
+        videoUrl: 'https://mega.nz/embed/uEUF0LyD#ENVsIwPTVv3F03C_K4K4FQIWCMU-zrLkbxRTl3eZjaA'
+      },
+      {
+        title: 'Good Boy',
+        imgUrl: 'https://pics.filmaffinity.com/good_boy-840537395-large.jpg',
+        videoUrl: 'https://mega.nz/embed/mMFRmQRB#0zR2mkW2wm1vr_WkaRbCmsk7dHeqJmcfzlJOIEiAOxM'
+      },
+      {
+        title: 'Backrooms',
+        imgUrl: 'https://media.posterspy.com/2026/04/27072210/BACKROOMS.jpeg',
+        videoUrl: 'https://mega.nz/embed/eM0CyLRI#9qhTiDwYLAk-iQENRj8u58HlU6P8gfD3ypnxsgHI9cc'
+      },
+      {
+        title: 'Elevation',
+        imgUrl: 'https://pics.filmaffinity.com/elevation-279786121-large.jpg',
+        videoUrl: 'https://mega.nz/embed/7R1y3JaT#jni2QIYTgyTGpqRtxRke8gBD7sfyGloXdanf_cqLqj0'
+      },
+      {
+        title: 'We Bury the Dead',
+        imgUrl: 'https://pics.filmaffinity.com/we_bury_the_dead-893436860-large.jpg',
+        videoUrl: 'https://mega.nz/embed/qN8TBKpR#EfwyWR3IiGHBEntQk839qc63fZx1VYzTZuAgbwUx1Lo'
+      }
+    ];
+
+    const accentColors = ['#F472B6', '#C084FC', '#60A5FA', '#F472B6', '#C084FC', '#60A5FA', '#F472B6', '#C084FC'];
+    const grid = document.getElementById('cards-grid');
+
+    movies.forEach((movie, i) => {
+      const card = document.createElement('div');
+      card.className = 'movie-card';
+      card.innerHTML = `
+        <div class="cover-wrap" data-video="${movie.videoUrl}" data-title="${movie.title}">
+          <img class="cover-img" src="${movie.imgUrl}" alt="${movie.title}" onerror="this.style.opacity='0.2'" />
+          <div class="play-overlay">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="27" stroke="white" stroke-width="2" fill="rgba(0,0,0,0.3)"/>
+              <polygon points="22,16 44,28 22,40" fill="white"/>
+            </svg>
+          </div>
+        </div>
+        <div class="movie-title-display" style="color:${accentColors[i]}">${movie.title}</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // ── SERIES ──
+    const series = [
+      {
+        title: 'From — T1 Episodio 1',
+        imgUrl: 'https://pics.filmaffinity.com/from-718521893-large.jpg',
+        videoUrl: 'https://mega.nz/embed/aNNHABjR#7Kj26eNxwoGubExWJHaVKcpyfdoAjSe09G-cnESm4g0'
+      },
+      {
+        title: 'From — T1 Episodio 2',
+        imgUrl: 'https://pics.filmaffinity.com/from-718521893-large.jpg',
+        videoUrl: 'https://mega.nz/embed/ONNSUTTI#N97RkRBR_NoTZL9VXoggTj6_tqKnWqJvfrWerpskirU'
+      },
+      {
+        title: 'From — T1 Episodio 3',
+        imgUrl: 'https://pics.filmaffinity.com/from-718521893-large.jpg',
+        videoUrl: 'https://mega.nz/embed/Dc8WhbJJ#yu5J4UXVXsvrxbn0h0RXHQM1LqKwdqJHFBkcWFZITCQ'
+      }
+    ];
+
+    const seriesGrid = document.getElementById('series-grid');
+    const seriesAccentColors = ['#F472B6', '#C084FC', '#60A5FA'];
+
+    series.forEach((ep, i) => {
+      const card = document.createElement('div');
+      card.className = 'movie-card';
+      card.innerHTML = `
+        <div class="cover-wrap" data-video="${ep.videoUrl}" data-title="${ep.title}">
+          <img class="cover-img" src="${ep.imgUrl}" alt="${ep.title}" onerror="this.style.opacity='0.2'" />
+          <div class="play-overlay">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="27" stroke="white" stroke-width="2" fill="rgba(0,0,0,0.3)"/>
+              <polygon points="22,16 44,28 22,40" fill="white"/>
+            </svg>
+          </div>
+        </div>
+        <div class="movie-title-display" style="color:${seriesAccentColors[i]}">${ep.title}</div>
+      `;
+      seriesGrid.appendChild(card);
+    });
+
+    // ── Modal ──
+    const modal       = document.getElementById('modal');
+    const modalTitle   = document.getElementById('modal-title');
+    const modalIframe  = document.getElementById('modal-iframe');
+    const modalClose   = document.getElementById('modal-close');
+
+    document.addEventListener('click', e => {
+      const wrap = e.target.closest('.cover-wrap:not(.coming-soon)');
+      if (!wrap) return;
+      if (!wrap.dataset.video) {
+        alert('Este título aún no tiene link de video asignado.');
+        return;
+      }
+      modalTitle.textContent = wrap.dataset.title;
+      modalIframe.src = wrap.dataset.video;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+
+    function closeModal() {
+      modal.classList.remove('active');
+      modalIframe.src = '';
+      document.body.style.overflow = '';
+    }
+
+    modalClose.addEventListener('click', closeModal);
+
+    // Clic fuera del modal lo cierra
+    modal.addEventListener('click', e => {
+      if (e.target === modal) closeModal();
+    });
+
+    // ESC cierra el modal
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+
+</body>
+</html>
